@@ -1,6 +1,11 @@
 package main
 
-import "io/ioutil"
+import (
+	"errors"
+	"io/ioutil"
+	"net/http"
+	"regexp"
+)
 
 type Page struct {
 	Title string
@@ -27,4 +32,16 @@ const absViewPath string = "src/cmd/wiki/view/"
 
 func ViewPath(verb string) string {
 	return absViewPath + verb + ".html"
+}
+
+var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+
+func GetTitle(rw http.ResponseWriter, req *http.Request) (string, error) {
+	m := validPath.FindStringSubmatch(req.URL.Path)
+	if m == nil {
+		http.NotFound(rw, req)
+		return "", errors.New("Title not found")
+	}
+
+	return m[2], nil
 }

@@ -18,7 +18,10 @@ func renderTemplate(rw http.ResponseWriter, view string, p *Page) {
 
 // Request handlers
 func viewHandler(rw http.ResponseWriter, req *http.Request) {
-	title := req.URL.Path[len("/view/"):]
+	title, err := GetTitle(rw, req)
+	if err != nil {
+		return
+	}
 
 	page, err := LoadPage(title)
 	if err != nil {
@@ -30,7 +33,10 @@ func viewHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func editHandler(rw http.ResponseWriter, req *http.Request) {
-	title := req.URL.Path[len("/edit/"):]
+	title, err := GetTitle(rw, req)
+	if err != nil {
+		return
+	}
 
 	page, err := LoadPage(title)
 	if err != nil {
@@ -41,11 +47,14 @@ func editHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func saveHandler(rw http.ResponseWriter, req *http.Request) {
-	title := req.URL.Path[len("/save/"):]
-	body := req.FormValue("body")
+	title, err := GetTitle(rw, req)
+	if err != nil {
+		return
+	}
 
+	body := req.FormValue("body")
 	p := &Page{Title: title, Body: []byte(body)}
-	err := p.Save()
+	err = p.Save()
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
